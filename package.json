@@ -1,10 +1,11 @@
 {
   "name": "vuc-designer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "author": {
     "name": "YueXing"
   },
   "keywords": [
+    "vuc",
     "iview",
     "vue",
     "vue.js",
@@ -18,6 +19,9 @@
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "build": "node build/build.js"
+  },
+  "bugs": {
+    "url": "https://github.com/yuexing91/vuc/issues"
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
@@ -90,6 +94,6 @@
     "last 2 versions",
     "not ie <= 8"
   ],
-  "main": "src/index.js",
+  "main": "dist/vuc.js",
   "license": "ISC"
 }

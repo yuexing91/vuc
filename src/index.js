@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import iView from 'view-design';
-import 'view-design/dist/styles/iview.css';
 
 import CoreUI from './ui';
 import Designer from './core/designer';
