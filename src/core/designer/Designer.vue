@@ -92,6 +92,7 @@
     },
 
     methods: {
+
       addView(views) {
         views.forEach(v => {
           const _v = this.views.find(_v => _v.id === v.id);
@@ -129,6 +130,9 @@
         return this.vucAst.getContent();
       },
 
+      setVueContent(content){
+        this.vucAst = createVucAst(content);
+      }
     },
   });
 
