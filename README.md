@@ -1,29 +1,54 @@
 # vuc
 
-> vue文件的可视化编辑器
+> vue文件的可视化设计器；支持组件拖拽、导出为vue文件。
+> [在线预览](https://yuexing91.github.io/vuc-demo/)
+> [demo](https://github.com/yuexing91/vuc-demo)
 
-## Install
+
+* 所见即所得
+* 支持自定义扩展
+* 支持任意模板片段
+* 支持扩展模块（后续文档再定）
+* 支持vue文件中的data、computed、watch、methods可视化维护
+* 支持template节点中的props、style（暂时只支持静态样式）、directive、event
+
+## 优点
+> 相对于传统设计器生成的json配置，vuc直接生成的是vue文件更加适合二次开发。
+
+## 适用场景
+
+* 低代码平台
+* 表单设计器
+* 报表设计器
+
+
+## 安装
 
 ``` bash
 npm install vuc-designer --save
 
 ```
-# Usage
+# 使用
 
 ### main.js
 ```js
 
   import Vuc from 'vuc-designer';
   import 'vuc-designer/dist/styles/vuc.css';
+  //设计器UI使用的是iview
   import 'view-design/dist/styles/iview.css';
 
+  //引入组件配置
   import InputConfig from './InputConfig';
   import ButtonConfig from './ButtonConfig';
 
+  //注册配置
   Vuc.Designer.setVucConfig(ButtonConfig);
   Vuc.Designer.setVucConfig(InputConfig);
 
+  //设计器选项
   let options = {
+    // 左侧可拖拽组件配置
     components: [
       {
         title: '基础',
@@ -44,6 +69,7 @@ npm install vuc-designer --save
     ],
   };
 
+  // vue文件内容
   let vueContent = `
     <template>
       <div>
@@ -84,6 +110,9 @@ npm install vuc-designer --save
     });
 
   designer.$mount(document.querySelector('#app'));
+
+  //获取修改后的内容
+  console.log(designer.getVueContent());
 
 ```
 

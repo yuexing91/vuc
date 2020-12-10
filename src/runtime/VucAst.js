@@ -63,7 +63,7 @@ export default class VucAst {
 
   }
 
-  updateContent () {
+  getContent () {
     let exportDefaultCode = 'export default {' +
       this.exportProcessor.map(property => {
         if (property.processor) return property.processor.toCode();
@@ -80,7 +80,7 @@ export default class VucAst {
       ${this.otherCode[1]}
     </script>`;
 
-    console.log(code);
+    return code;
   }
 
   getVucNodeByAstId (astId) {

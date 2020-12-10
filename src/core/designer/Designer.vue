@@ -124,6 +124,11 @@
         window.addEventListener('mousemove', move);
         window.addEventListener('mouseup', up);
       },
+
+      getVueContent() {
+        return this.vucAst.getContent();
+      },
+
     },
   });
 

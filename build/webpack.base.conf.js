@@ -32,7 +32,7 @@ module.exports = {
       : config.dev.assetsPublicPath,
     library: 'vuc',
     libraryTarget: 'umd',
-    umdNamedDefine: true
+    umdNamedDefine: true,
   },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
@@ -41,7 +41,7 @@ module.exports = {
       '@': resolve('src'),
     },
   },
-  externals: ['vue', 'view-design', 'lodash'],
+  externals: ['vue', 'view-design', 'lodash', 'codemirror', 'esprima'],
   module: {
     rules: [
       {
