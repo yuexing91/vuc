@@ -4,7 +4,7 @@
 > [在线预览](https://yuexing91.github.io/vuc-demo/)
 > [demo](https://github.com/yuexing91/vuc-demo)
 
-![演示图片](http://yuexing91.gitee.io/yuexing91.github.io/vuc-demo/img/preview.gif "演示图片")
+![演示图片](https://yuexing91.github.io/vuc-demo/img/preview.gif "演示图片")
 
 * 所见即所得
 * 支持自定义扩展
