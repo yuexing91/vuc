@@ -3,7 +3,7 @@
 > vue文件的可视化设计器；支持组件拖拽、导出为vue文件。
 - [在线预览](https://yuexing91.github.io/vuc-demo/)
 - [demo](https://github.com/yuexing91/vuc-demo)
-- [文档](https://github.com/yuexing91/vuc/blob/0.2.0/docs/index.md)
+- [文档](./docs/index.md)
 
 ![演示图片](https://github.com/yuexing91/yuexing91.github.io/blob/master/vuc-demo/img/preview.gif "演示图片")
 
