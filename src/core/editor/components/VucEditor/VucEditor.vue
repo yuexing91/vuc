@@ -1,11 +1,12 @@
 <template>
-  <div class="vuc-editor" tabIndex="999" style="outline: none">
+  <div class="vuc-editor" tabIndex="9999">
 
     <div class="vuc-editor-content">
 
       <div class="vuc-ceditor">
-        <div class="vuc-ceditor-panle vuc-ceditor-panle-top">
-          <div class="p"/>
+
+        <div class="vuc-ceditor-panle vuc-ceditor-panle-top" v-if="showRuler">
+          <div class="vuc-ceditor-empty"/>
           <VucEditorRuler
             :style="{ marginLeft: -scrollLeft + 'px'}"
             :size="200"
@@ -13,15 +14,18 @@
             direction="row"/>
         </div>
 
-        <div class="vuc-ceditor-panle">
-          <VucEditorRuler :style="{ marginTop: -scrollTop + 'px'}"
-                          :size="200" :scale="10" direction="column"/>
-          <div class="vuc-ceditor-cpanle" >
-            <div class="app-wrapper" @scroll="scroll" style="height: 100%;width: 100%;position:absolute;background: #f7f7f7;overflow: auto">
+        <div class="vuc-ceditor-panle vuc-ceditor-panle-bottom">
+          <VucEditorRuler v-if="showRuler"
+                          :style="{ marginTop: -scrollTop + 'px'}"
+                          :size="200"
+                          :scale="10"
+                          direction="column"/>
+          <div class="vuc-ceditor-cpanle">
+            <div class="app-wrapper" @scroll="scroll"
+                 :style="options.wrapperStyle">
               <div class="app"/>
             </div>
           </div>
-
           <VucEditorNodeSelectedLayer/>
           <VucEditorNodeHoverLayer/>
           <VucEditorNodeTools/>
@@ -33,15 +37,15 @@
           :items="contenxtMenuItems"
           :style="contextMenuStyle"
           @click-item="handleMenu"></VucContextMenu>
-
       </div>
 
 
-      <div class="vuc-panle-resize-handler"
-           @mousedown.stop.prevent="resizeRight"
-           :style="{ right: rightPanleWidth + 'px' }"></div>
-
-      <StructureEditor style="flex-shrink: 0" :style="{width: rightPanleWidth + 'px'}"></StructureEditor>
+      <template v-if="showStructure">
+        <div class="vuc-panle-resize-handler"
+             @mousedown.stop.prevent="resizeRight"
+             :style="{ right: rightPanleWidth + 'px' }"></div>
+        <StructureEditor style="flex-shrink: 0" :style="{width: rightPanleWidth + 'px'}"></StructureEditor>
+      </template>
 
     </div>
 
@@ -53,6 +57,7 @@
 <script>
 
   import _ from 'lodash';
+  import Vue from 'vue';
 
   import eventsMixin from './events';
   import keymapMixin from './keymap';
@@ -69,7 +74,7 @@
 
   import vucNodeApi from '../../api/vucNodeApi';
 
-  export default {
+  export default Vue.extend({
     components: {
       VucEditorRuler,
       VucEditorNodeNav,
@@ -84,6 +89,12 @@
     props: {
       id: String,
       vucAst: Object,
+      options: {
+        type: Object,
+        default() {
+          return {};
+        },
+      },
     },
 
     data() {
@@ -109,6 +120,15 @@
         }
         return [];
       },
+
+      showRuler() {
+        return this.options.showRuler || true;
+      },
+
+      showStructure() {
+        return this.options.showStructure || true;
+      },
+
     },
 
     mounted() {
@@ -219,5 +239,14 @@
       },
 
     },
-  };
+  });
 </script>
+
+<style>
+  .app-wrapper {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+  }
+</style>

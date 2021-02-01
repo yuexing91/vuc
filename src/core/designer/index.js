@@ -1,25 +1,15 @@
 import Designer from './Designer.vue';
 
-function mixin(id, component) {
-  const DesignerPanle          = Designer.component('DesignerPanle');
-  DesignerPanle.components[id] = component;
-}
-
-function registerView(id, component) {
-  mixin(id, component);
-};
-
-function registerEditor(id, component) {
-  mixin(id, component);
-};
+import { registerView, getAllView, getView } from './views';
 
 Object.assign(Designer, {
-  registerExtension(name, func){
+  registerExtension(name, func) {
     Designer[name] = func;
   },
 });
 
 Designer.registerExtension('registerView', registerView);
-Designer.registerExtension('registerEditor', registerEditor);
+Designer.registerExtension('getAllView', getAllView);
+Designer.registerExtension('getView', getView);
 
 export default Designer;

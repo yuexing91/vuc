@@ -188,9 +188,8 @@ export function getComponentEvents() {
   });
 }
 
-var onRE       = /^@|^v-on:/;
-var modifierRE = /\.[^.\]]+(?=[^\]]*$)/g;
-
+let onRE       = /^@|^v-on:/;
+let modifierRE = /\.[^.\]]+(?=[^\]]*$)/g;
 
 export function processEvent(name) {
   let event     = {

@@ -1,7 +1,7 @@
-import StyleView from './StyleView.vue';
+import StylePanel from './StylePanel.vue';
 
 export default {
   install(Designer){
-    Designer.registerConfigurator('StyleView', StyleView);
+    Designer.registerPanel('StylePanel', StylePanel);
   },
 };

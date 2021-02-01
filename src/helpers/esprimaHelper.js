@@ -2,34 +2,34 @@ import _ from 'lodash';
 import * as esprima from 'esprima';
 
 class Expr {
-  constructor (type, value, raw) {
+  constructor(type, value, raw) {
     this.type = type;
     this.value = value;
     this.raw = raw;
   }
 
-  toCode () {
+  toCode() {
     return this.raw;
   }
 
 }
 
-export function parseModule (content) {
+export function parseModule(content) {
   return esprima.parseModule(content, {
     range: true,
     attachComment: true,
   });
 }
 
-export function parseScript (content) {
+export function parseScript(content) {
   return esprima.parse(content, {
     range: true,
     attachComment: true,
   });
 }
 
-export function parseExpression (code) {
-  let Program = parseScript(`${code}`);
+export function parseExpression(code) {
+  let Program = parseScript(`(${ code })`);
 
   return _.first(Program.body).expression;
 }
@@ -38,17 +38,17 @@ export function parseExpression (code) {
  * 返回表单式的简单对象
  * @param code
  */
-function getCodeExpressionObj (code) {
+function getCodeExpressionObj(code) {
   let expr = parseExpression(code);
   return getExpressionObj(expr, code);
 }
 
-function getExpressionObj (expr, code) {
+function getExpressionObj(expr, code) {
   let raw = subCode(expr.range, code);
   return new Expr(expr.type, expr.type === 'Literal' ? expr.value : raw, raw);
 }
 
-function extractAnnotations (leadingComments) {
+function extractAnnotations(leadingComments) {
   let annotations = [];
   let remark = [];
   _.forEach(leadingComments, comment => {
@@ -68,16 +68,16 @@ function extractAnnotations (leadingComments) {
     });
   });
 
-  function find (name) {
+  function find(name) {
     return _.find(annotations, { name: '@' + name });
   }
 
-  function filter (name) {
+  function filter(name) {
     return _.filter(annotations, { name: '@' + name });
   }
 
   return {
-    remark (val) {
+    remark(val) {
       if (val) {
         remark = val.split('\n');
         return;
@@ -86,10 +86,10 @@ function extractAnnotations (leadingComments) {
     },
     filter,
     find,
-    hasAnnotations (_annotations) {
+    hasAnnotations(_annotations) {
       return _.some(_annotations, find);
     },
-    getParams () {
+    getParams() {
       return _.map(filter('param'), param => {
         let id = param.params[0];
         let req = !id.startsWith('[');
@@ -103,7 +103,7 @@ function extractAnnotations (leadingComments) {
   };
 }
 
-function parseFunctionExpression (expression, code) {
+function parseFunctionExpression(expression, code) {
 
   let Annotations = extractAnnotations(expression.leadingComments);
   //显示名称
@@ -144,18 +144,25 @@ function parseFunctionExpression (expression, code) {
 
 }
 
-function parseObjectExpression (ObjectExpression, code) {
-  return _.map(ObjectExpression.properties, p => {
+function parseObjectExpression(objectExpression, code) {
+  return _.map(objectExpression.properties, p => {
     let Annotations = extractAnnotations(p.leadingComments);
-    return {
+
+    let value = {
       id: p.key.name,
       name: Annotations.remark(),
       code: subCode(p.value.range, code),
     };
+
+    if (p.value.type === 'ObjectExpression') {
+      value.children = parseObjectExpression(p.value, code);
+    }
+
+    return value;
   });
 }
 
-function getFunctionBodyNoReturnCode (FunctionExpression, code) {
+function getFunctionBodyNoReturnCode(FunctionExpression, code) {
   let body = FunctionExpression.body.body;
   let t = _.take(body, body.length - 1);
   if (t.length != 0) {
@@ -164,15 +171,15 @@ function getFunctionBodyNoReturnCode (FunctionExpression, code) {
   return '';
 }
 
-function getFunctionBodyCode (FunctionExpression, code) {
+function getFunctionBodyCode(FunctionExpression, code) {
   return subCode([FunctionExpression.body.range[0] + 1, FunctionExpression.body.range[1] - 1], code);
 }
 
-function getFunctionReturnExpression (FunctionExpression) {
+function getFunctionReturnExpression(FunctionExpression) {
   return _.last(FunctionExpression.body.body).argument;
 }
 
-function subCode (range, code) {
+function subCode(range, code) {
   return code.substring(range[0], range[1]);
 }
 
@@ -277,4 +284,6 @@ export default {
   parseFunctionExpression,
   parseObjectExpression,
   subCode,
+  parseScript,
+  parseExpression
 };

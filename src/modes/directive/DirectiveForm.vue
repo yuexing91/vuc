@@ -1,59 +1,145 @@
 <template>
-  <div>
-    <Form :label-width="80">
-      <FormItem label="指令">
-        <i-select v-model="value.name" :disabled="readonly">
-          <i-option v-for="direct in directiveSchemas" :value="direct.name" :key="direct.name">{{direct.name}}
-          </i-option>
-        </i-select>
-      </FormItem>
-      <FormItem label="功能" v-show="value.name">
-        {{directive.describe}}
-      </FormItem>
-      <FormItem :label="prop.describe" v-for="(prop,index) in props" :key="index">
-        <VucCodeEditor v-model="value[prop.name]" :inline="true"></VucCodeEditor>
-      </FormItem>
-    </Form>
-  </div>
-</template>
-<script>
-  import { directiveSchemas, getDirectiveSchema } from './systemDirectives';
+  <Form ref="form" :label-width="70" :model="editData" :show-message="false">
+    <div class="vuc-direct">
 
-  export default{
+      <div class="vuc-direct-header">
+          <span class="vuc-direct-title" :title="directive.describe">
+            v-{{ directive.name }}
+          </span>
+        <span class="vuc-direct-extra">
+            <i-switch v-model="directive.enable" size="small" @on-change="changeEnable(directive)"></i-switch>
+          </span>
+      </div>
+
+      <div class="vuc-direct-body" v-if="directive.enable">
+        <FormItem v-for="prop in directive.props"
+                  :prop="prop.name"
+                  :required="prop.required"
+                  :label="prop.describe"
+                  :key="prop.name">
+          <VucCodeEditor v-if="editState" v-model="editData[prop.name]" inline sm/>
+          <code v-else @click="setEditState(true)">{{directive.data[prop.name]}}</code>
+        </FormItem>
+
+        <div v-if="editState" style="text-align: center;margin:6px;">
+          <i-button @click="saveForm" size="small" type="primary">确定</i-button>
+          <i-button @click="setEditState(false)" size="small">取消</i-button>
+        </div>
+
+      </div>
+    </div>
+  </Form>
+</template>
+
+<script>
+
+  export default {
     props: {
-      value: Object,
-      directives: Array
+      directive: Object,
+      currentNode: Object,
     },
-    data(){
+    data() {
       return {
-        readonly: false
-      }
+        editState: false,
+        editData: null,
+      };
     },
-    computed: {
-      directive(){
-        return getDirectiveSchema(this.value.name) || {};
-      },
-      props(){
-        return this.directive.props;
-      },
-      directiveSchemas(){
-        return directiveSchemas.filter(schema => {
-          return !this.directives.find(dir => dir.name == schema.name)
-        })
-      }
-    },
+
     watch: {
-      value: {
-        handler(newValue, oldValue){
-          if (newValue === oldValue) return;
-          if (this.value.name) {
-            this.readonly = true;
-          } else {
-            this.readonly = false;
+      editState(editState) {
+        if (editState) {
+          let name = this.directive.name;
+          this.editData = Object.assign({
+            name,
+            rawName: 'v-' + name,
+          }, this.directive.data);
+        }
+      },
+    },
+
+    methods: {
+
+      setEditState(state) {
+        this.editState = state;
+        if (!state) {
+          this.validate().then(success => {
+            if (!success) {
+              this.directive.enable = false;
+              this.changeEnable();
+            }
+          });
+        }
+      },
+
+      changeEnable() {
+        if (this.directive.enable) {
+          this.editState = true;
+          this.$nextTick(() => {
+            this.validate().then(success => {
+              if (success) {
+                this.currentNode.setDirective(this.editData);
+              }
+            });
+          });
+        } else {
+          this.editState = false;
+          this.currentNode.delDirective(this.directive.name);
+        }
+      },
+
+      saveForm() {
+        this.validate().then(success => {
+          if (success) {
+            this.editState = false;
+            this.directive.data = this.editData;
+            this.currentNode.setDirective(this.editData);
+            this.$emit('on-change');
           }
-        },
-        immediate: true
+        });
+      },
+
+      validate() {
+        return this.$refs.form.validate();
+      },
+
+    },
+  };
+</script>
+
+<style lang="less">
+  .vuc-direct {
+    position: relative;
+    margin-bottom: 6px;
+
+    &-header {
+      padding: 2px;
+      position: relative;
+    }
+
+    &-title {
+      font-size: 16px;
+      color: #fa795e;
+    }
+
+    &-extra {
+      position: absolute;
+      right: 0px;
+    }
+
+    &-body {
+      padding: 2px 12px 0px;
+    }
+
+    .ivu-form-item {
+      margin-bottom: 6px;
+
+      .ivu-form-item-content {
+        line-height: 26px;
+      }
+
+      .ivu-form-item-label {
+        padding: 6px 12px 6px 0;
       }
     }
   }
-</script>
+</style>

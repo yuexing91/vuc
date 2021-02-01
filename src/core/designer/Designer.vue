@@ -1,63 +1,39 @@
 <template>
   <div class="vuc-designer vuc-flex-column">
     <div class="vuc-panles vuc-flex-mainitem vuc-flex">
-      <DesignerPanle style="width: 250px;border-right-width: 1px"
-                     :plugins="leftPlugins"/>
+      <DesignerViews :style="leftViewStyle">
+        <slot name="left"></slot>
+      </DesignerViews>
 
-      <VucEditor ref="editor" :vucAst="vucAst" style="width: 100px;"
+      <VucEditor ref="editor"
+                 style="width: 100px;"
+                 :vucAst="vucAst"
+                 :options="editorOptions"
                  class="vuc-flex-mainitem"></VucEditor>
 
-      <DesignerPanle
-        :style="{ width: rightPanleWidth + 'px' }"
-        style="border-left-width: 1px"
-        :plugins="rightPlugins"/>
+      <DesignerViews :style="rightViewStyle">
+        <slot name="right"></slot>
+      </DesignerViews>
     </div>
 
     <div class="vuc-panle-resize-handler"
          @mousedown.stop.prevent="resizeRight"
-         :style="{ right: rightPanleWidth + 'px' }"></div>
+         :style="{ right: rightViewWidth + 'px' }"></div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import Vue from 'vue';
 
-  import DesignerPanle from './DesignerPanle';
+  import DesignerViews from './DesignerViews';
   import VucEditor from '../editor';
   import { createVucAst } from '../../runtime';
 
-  const VIEWS = [
-    {
-      id: 'explorer',
-      type: 'ExplorerView',
-      pos: 'left',
-      title: '组件',
-    },
-    {
-      id: 'pagePropertysView',
-      type: 'PropertysView',
-      pos: 'right',
-      title: '页面属性',
-      props: {
-        configurators: ['DataView', 'ComputedView', 'WatchView', 'MethodView'],
-      },
-    },
-    {
-      id: 'childPropertysView',
-      type: 'PropertysView',
-      pos: 'right',
-      title: '组件属性',
-      props: {
-        configurators: ['TextView', 'PropsView', 'EventView', 'StyleView', 'DirectiveView'],
-      },
-    },
-  ];
-
   const Designer = Vue.extend({
-    name: 'Designer',
+    name: 'VucDesigner',
 
     components: {
-      DesignerPanle,
+      DesignerViews,
       VucEditor,
     },
 
@@ -67,28 +43,31 @@
       };
     },
 
+    computed: {
+      leftViewStyle() {
+        return {
+          width: '250px',
+          borderRightWidth: '1px',
+        };
+      },
+      rightViewStyle() {
+        return {
+          width: this.rightViewWidth + 'px',
+          borderLeftWidth: '1px',
+        };
+      },
+    },
+
     props: {
-      options: Object,
+      editorOptions: Object,
       content: String,
     },
 
     data() {
       return {
         vucAst: createVucAst(this.content),
-        views: ( this.options.views || VIEWS ).concat([]),
-        rightPanleWidth: 300,
+        rightViewWidth: 300,
       };
-    },
-
-    computed: {
-      rightPlugins() {
-        return this.views.filter(v => v.pos === 'right');
-      },
-
-      leftPlugins() {
-        return this.views.filter(v => v.pos === 'left');
-      },
-
     },
 
     methods: {
@@ -107,14 +86,14 @@
       resizeRight(e) {
         const x = e.pageX;
 
-        const rightPanleWidth = this.rightPanleWidth;
+        const rightViewWidth = this.rightViewWidth;
 
         const move = (e) => {
-          let w = rightPanleWidth - ( e.pageX - x );
+          let w = rightViewWidth - ( e.pageX - x );
           if (w > 1000) w = 1000;
           if (w < 200) w = 200;
 
-          this.rightPanleWidth = w;
+          this.rightViewWidth = w;
         };
 
         const up = (e) => {
@@ -130,9 +109,9 @@
         return this.vucAst.getContent();
       },
 
-      setVueContent(content){
+      setVueContent(content) {
         this.vucAst = createVucAst(content);
-      }
+      },
     },
   });
 

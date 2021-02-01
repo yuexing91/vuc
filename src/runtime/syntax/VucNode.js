@@ -1,19 +1,20 @@
 import _ from 'lodash';
 import Vue from 'vue';
 
+import { camelize } from '@/helpers/lang';
 import { getVucConfig } from '../../config/vucConfig';
 import { getDirectives, getDirective, setDirective, delDirective } from './directives';
 
 export default class VucNode {
-  constructor (node, parent) {
+  constructor(node, parent) {
 
-    for (const key in node) {
+    for(let key in node) {
       if (key === 'children') {
-        const children = _.filter(node.children, _.negate(_.matches({
-          text: ' ',
-          type: 3,
-        })));
-        this[key] = children.map(child => {
+        let children = _.filter(node.children, function (n) {
+          return !( n.text === ' ' && n.type === 3 );
+        });
+
+        this.children = children.map(child => {
           if (child instanceof VucNode) {
             child.parent = this;
             return child;
@@ -27,39 +28,48 @@ export default class VucNode {
 
     if (!this.isText()) {
       this.children = this.children || [];
+      this.directives = this.directives || [];
+
+      this.camelizeTag = camelize(this.tag);
     }
     this.attrsMap = this.attrsMap || {};
     this._astId = _.uniqueId('ast_');
-    this.parent = parent;
+
+    Object.defineProperty(this, 'parent', {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: parent,
+    });
   }
 
-  getIndex () {
+  getIndex() {
     return this.parent ? this.parent.getChildIndex(this) : -1;
   }
 
-  getChildIndex (child) {
+  getChildIndex(child) {
     return this.children ? this.children.indexOf(child) : -1;
   }
 
-  getChild (index) {
+  getChild(index) {
     return this.children[index];
   }
 
-  getBeforeNode () {
+  getBeforeNode() {
     const index = this.getIndex();
     if (this.parent) {
       return this.parent.getChild(index - 1);
     }
   }
 
-  getAfterNode () {
+  getAfterNode() {
     const index = this.getIndex();
     if (this.parent) {
       return this.parent.getChild(index + 1);
     }
   }
 
-  getParentNode () {
+  getParentNode() {
     if (this.parent) {
       if (this.parent.tag !== 'template') {
         return this.parent;
@@ -70,7 +80,7 @@ export default class VucNode {
     }
   }
 
-  getBelongSlotName () {
+  getBelongSlotName() {
     if (this.attrsMap.slot) {
       return this.attrsMap.slot;
     }
@@ -82,13 +92,13 @@ export default class VucNode {
     return 'default';
   }
 
-  getAttrsString () {
+  getAttrsString() {
     return _.map(this.attrsMap, (v, k) => {
-      return v === undefined ? '' : `${k}="${v}"`;
+      return v === undefined ? '' : `${ k }="${ v }"`;
     }).join(' ');
   }
 
-  getScopeVariables () {
+  getScopeVariables() {
     let scopes = [];
     let node = this;
     while (node) {
@@ -100,26 +110,27 @@ export default class VucNode {
     return scopes;
   }
 
-  setTag (tag) {
+  setTag(tag) {
     this.tag = tag;
+    this.camelizeTag = camelize(tag);
   }
 
-  remove () {
+  remove() {
     if (this.parent) {
       this.parent.removeChild(this);
     }
   }
 
-  removeChild (child) {
+  removeChild(child) {
     const dropIndex = this.getChildIndex(child);
     this.children.splice(dropIndex, 1);
   }
 
-  empty () {
+  empty() {
     this.children = [];
   }
 
-  insterNode (node, index) {
+  insterNode(node, index) {
     if (node.parent === this) {
       if (node.getIndex() + 1 < index) {
         index--;
@@ -130,7 +141,7 @@ export default class VucNode {
     this.children.splice(index, 0, node);
   }
 
-  insterNodes (nodes, index) {
+  insterNodes(nodes, index) {
     nodes = _.castArray(nodes);
     nodes.forEach(node => {
       if (node.parent === this) {
@@ -144,7 +155,7 @@ export default class VucNode {
     this.children.splice(index, 0, ...nodes);
   }
 
-  appendNode (nodes) {
+  appendNode(nodes) {
     _.castArray(nodes).forEach(node => {
       node.remove();
       node.parent = this;
@@ -152,17 +163,17 @@ export default class VucNode {
     });
   }
 
-  insterBefore (beforeNode) {
+  insterBefore(beforeNode) {
     const index = this.getIndex();
     this.parent.insterNodes(beforeNode, index);
   }
 
-  insterAfter (afterNode) {
+  insterAfter(afterNode) {
     const index = this.getIndex();
     this.parent.insterNodes(afterNode, index + 1);
   }
 
-  insterToSlot (insterNode, slot) {
+  insterToSlot(insterNode, slot) {
     const node = this;
     const slotNode = _.find(node.children, child => {
       return child.attrsMap && child.attrsMap.slot == slot;
@@ -189,7 +200,7 @@ export default class VucNode {
     }
   }
 
-  setAttrsMap (key, value) {
+  setAttrsMap(key, value) {
     if (_.has(this.attrsMap, key)) {
       this.attrsMap[key] = value;
     } else {
@@ -197,25 +208,31 @@ export default class VucNode {
     }
   }
 
-  setStyle (style, dynamic = false) {
+  setStyle(style, dynamic = false) {
     let setKey = dynamic ? ':style' : 'style';
     Vue.set(this.attrsMap, setKey, style);
   }
 
-  setAttr (key, value, dynamic) {
+  setAttr(key, value, dynamic) {
     if (_.isUndefined(dynamic)) {
       dynamic = !_.isString(value);
     }
     let setKey = dynamic ? ':' + key : key;
+    let delKey = dynamic ? key : ':' + key;
 
     let oldValue = this.attrsMap[setKey];
     let hasOldValue = _.has(this.attrsMap, setKey);
 
-    Vue.delete(this.attrsMap, key);
-    Vue.delete(this.attrsMap, ':' + key);
+    if (!hasOldValue && _.isUndefined(value)) {
+      return false;
+    }
+
+    Vue.delete(this.attrsMap, delKey);
 
     if (value !== undefined && value !== '' && value !== null) {
       Vue.set(this.attrsMap, setKey, value);
+    } else {
+      Vue.delete(this.attrsMap, setKey);
     }
 
     if (hasOldValue && oldValue === value) {
@@ -225,60 +242,85 @@ export default class VucNode {
     return true;
   }
 
-  setText (text) {
+  setText(text, type = 2) {
     if (this.isText()) {
       this.text = text;
     } else {
-      this.children = [new VucNode({
-        text,
-        type: 2,
-      }, this)];
+      this.children = [createTextNode(text, this, type)];
     }
   }
 
-  getText () {
+  replaceText(text, type = 2) {
+    if (this.isText()) {
+      this.text = text;
+    } else {
+      let textNode = createTextNode(text, this, type);
+      let index = this.children.findIndex(child => child.isText());
+      if (index == -1) {
+        this.appendNode(textNode);
+      } else {
+        this.children.splice(index, 1, textNode);
+      }
+    }
+  }
+
+  getText() {
     if (this.isText()) return this.text;
-    return this.children.map(child => child.getText()).join('');
+    return this.children.map(child => child.getText()).join('').trim();
   }
 
-  getAttr (key) {
-    if (_.has(this.attrsMap, key)) {
-      return this.getStaticAttr(key);
-    }
-
+  getAttrDynamic(key) {
     if (_.has(this.attrsMap, ':' + key)) {
+      return 'dynamic';
+    }
+    if (_.has(this.attrsMap, key)) {
+      return 'static';
+    }
+  }
+
+  hasAttr(key, dynamic) {
+    let d = this.getAttrDynamic(key);
+    return dynamic ? d === dynamic : d ? true : false;
+  }
+
+  getAttr(key) {
+    let d = this.getAttrDynamic(key);
+    if (d === 'dynamic') {
       return this.getDynamicAttr(key);
     }
+    if (d === 'static') {
+      return this.getStaticAttr(key);
+    }
   }
 
-  getStaticAttr (key) {
+  getStaticAttr(key) {
     return this.attrsMap[key];
   }
 
-  getDynamicAttr (key) {
+  getDynamicAttr(key) {
     return this.attrsMap[':' + key];
   }
 
-  moveToBefore () {
+  moveToBefore() {
     const beforeNode = this.getBeforeNode();
     if (beforeNode) {
       beforeNode.insterBefore(this);
     }
   }
 
-  moveToAfter () {
+  moveToAfter() {
     const afterNode = this.getAfterNode();
     if (afterNode) {
       this.insterAfter(this);
     }
   }
 
-  moveToSlot (slot) {
+  moveToSlot(slot) {
     const parent = this.getParentNode();
     parent.insterToSlot(this, slot);
   }
 
-  clone () {
+  clone() {
     return new VucNode(cloneNode(this));
   }
 
@@ -287,7 +329,7 @@ export default class VucNode {
    * @param node
    * @returns {boolean}
    */
-  isOffspring (node) {
+  isOffspring(node) {
     if (this === node) return true;
     let t = node;
 
@@ -299,7 +341,7 @@ export default class VucNode {
     return false;
   }
 
-  closest (selector) {
+  closest(selector) {
     let temp = this;
     while (temp.parent) {
       if (temp.parent.test(selector)) {
@@ -309,7 +351,7 @@ export default class VucNode {
     }
   }
 
-  getParents () {
+  getParents() {
     let node = this;
     let parents = [];
     while (node.parent) {
@@ -319,11 +361,11 @@ export default class VucNode {
     return parents;
   }
 
-  querySelector (selector) {
+  querySelector(selector) {
     //.card>.row>.col>.form-item
     let paths = parseSelector(selector);
     let node = this;
-    for (let path of paths) {
+    for(let path of paths) {
       node = node[path.method].call(node, path.sel);
       if (!node) return;
     }
@@ -346,8 +388,17 @@ export default class VucNode {
 //    return node;
 //  }
 
+  eachAllNode(iterator) {
+    function loop(node) {
+      iterator(node);
+      _.forEach(node.children, loop);
+    }
+
+    loop(this);
+  }
+
   //深度优先
-  dfs (iterator) {
+  dfs(iterator) {
     let children = [].concat(this.children);
 
     while (children.length) {
@@ -371,7 +422,7 @@ export default class VucNode {
   }
 
   //广度优先
-  bfs (iterator) {
+  bfs(iterator) {
     let children = [].concat(this.children);
 
     while (children.length) {
@@ -394,11 +445,11 @@ export default class VucNode {
     }
   }
 
-  findChildDeep (selector) {
+  findChildDeep(selector) {
     return this.bfs(child => child.test(selector) ? -1 : undefined);
   }
 
-  findChildrenDeep (selector) {
+  findChildrenDeep(selector) {
     let array = [];
 
     this.bfs(child => {
@@ -410,60 +461,67 @@ export default class VucNode {
     return array;
   }
 
-  findChild (selector) {
+  findChild(selector) {
     return this.children.find(child => child.test(selector));
   }
 
-  findChildren (selector) {
+  findChildren(selector) {
     return this.children.filter(child => child.test(selector));
   }
 
-  getAttrsStr () {
-    return _.map(this.attrsMap, (v, k) => `${k}="${v}"`).join(' ');
+  getAttrsStr() {
+    return _.map(this.attrsMap, (v, k) => {
+      if (_.isUndefined(v)) return '';
+      return `${ k }="${ v }"`;
+    }).join(' ');
   }
 
-  toString () {
+  toString() {
     return this._astId;
   }
 
-  toTemplate () {
+  toTemplate() {
     if (this.type == '3' || this.type == '2') {
       return this.text;
     }
     let attrs = this.getAttrsStr();
     let children = this.children.map(child => child.toTemplate()).join('');
-    return `<${this.tag} ${attrs}>${children}</${this.tag}>`;
+    return `<${ this.tag } ${ attrs }>${ children }</${ this.tag }>`;
   }
 
-  getConfig () {
-    return getVucConfig(this.tag);
+  getConfig(key, defaultValue) {
+    let config = getVucConfig(this.camelizeTag);
+    if (key) {
+      return _.has(config, key) ? config[key] : defaultValue;
+    }
+    return config;
   }
 
-  isHTML () {
+  isHTML() {
     return isHTMLTag[this.tag];
   }
 
-  isText () {
+  isText() {
     return this.type === 2 || this.type === 3;
   }
 
-  getDirectives () {
+  getDirectives() {
     return getDirectives(this);
   }
 
-  getDirective (name) {
+  getDirective(name) {
     return getDirective(this, name);
   }
 
-  setDirective (name, data) {
-    return setDirective(this, name, data);
+  setDirective(data) {
+    return setDirective(this, data);
   }
 
-  delDirective (name) {
+  delDirective(name) {
     return delDirective(this, name);
   }
 
-  test (selector) {
+  test(selector) {
     if (selector[0] === '.') {
       selector = selector.substr(1);
       let config = this.getConfig();
@@ -471,16 +529,16 @@ export default class VucNode {
         return config.type.includes(selector);
       }
     }
-    return this.tag === selector;
+    return this.tag === selector || this.camelizeTag === camelize(selector);
   }
 
-  static createNode () {
+  static createNode() {
     return createNode.apply(this, arguments);
   }
 
 }
 
-function createNode (tag, attrsMap = {}, children = []) {
+function createNode(tag, attrsMap = {}, children = []) {
   const node = {
     tag,
     attrsMap,
@@ -489,7 +547,11 @@ function createNode (tag, attrsMap = {}, children = []) {
   return new VucNode(node);
 }
 
-function cloneNode (node) {
+function createTextNode(text, parent, type = 2) {
+  return new VucNode({ text, type }, parent);
+}
+
+function cloneNode(node) {
   const _node = {};
   _.map(node, (val, key) => {
     if (_.isFunction(val) || key.startsWith('_')) return;
@@ -508,13 +570,13 @@ function cloneNode (node) {
   return _node;
 }
 
-function makeMap (str) {
+function makeMap(str) {
   const map = {};
   str.split(',').forEach(k => map[k] = true);
   return map;
 }
 
-function parseSelector (selector, all) {
+function parseSelector(selector, all) {
   let method = 'findChildDeep';
   let paths = [];
   let sel = '';
@@ -531,7 +593,7 @@ function parseSelector (selector, all) {
     };
   }
 
-  for (let s of selector.split('')) {
+  for(let s of selector.split('')) {
     if (map[s]) {
       push();
       method = map[s];
@@ -543,7 +605,7 @@ function parseSelector (selector, all) {
 
   push();
 
-  function push () {
+  function push() {
     if (sel) {
       paths.push({
         method,
@@ -554,6 +616,7 @@ function parseSelector (selector, all) {
 
   return paths;
 }
+
 
 const isHTMLTag = makeMap(
   'html,body,base,head,link,meta,style,title,' +

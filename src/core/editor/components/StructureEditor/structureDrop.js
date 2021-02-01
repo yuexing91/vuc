@@ -1,5 +1,5 @@
 export default {
-  mounted(){
+  mounted() {
     this.dropPosProxyElement = null;
     window.addEventListener('mousemove', e => {
       if (this.dropPosProxyElement) {
@@ -16,8 +16,8 @@ export default {
     });
   },
   methods: {
-    dropStart(e, node){
-      this.activeEditor.dropStart(e, node, {
+    dropStart(e, data) {
+      this.activeEditor.dropStart(e, data, {
         x: 0,
         y: 0,
         width: '100px',
@@ -25,21 +25,26 @@ export default {
       });
     },
 
-    event(e, node, callback){
+    event(e, node, callback) {
       if (e._stopMove) {
         return;
       }
-      if (this.activeEditor && this.activeEditor.dropManager.dropVucNode) {
-        const dropNode = this.activeEditor.dropManager.dropVucNode;
-        if (dropNode.isOffspring(node)) {
-          return;
-        }
-        const pos = getPos(e, node);
 
-        if (pos === 'after' && node.getAfterNode() === dropNode) {
+      let dropManager = this.activeEditor.dropManager;
+      let dropData = this.activeEditor.dropManager.dropData;
+
+      if (dropData) {
+        if (dropManager.isOffspring(node)) {
           return;
         }
-        if (pos === 'before' && node.getBeforeNode() === dropNode) {
+
+        let pos = getPos(e, node);
+
+        if (pos === 'after' && node.getAfterNode() === dropData) {
+          return;
+        }
+
+        if (pos === 'before' && node.getBeforeNode() === dropData) {
           return;
         }
 
@@ -48,43 +53,58 @@ export default {
       }
     },
 
-    dropMove(e, node){
+    dropMove(e, node) {
       this.event(e, node, pos => {
         if (this.dropPosProxyElement == null) {
-          this.dropPosProxyElement           = document.createElement('div');
+          this.dropPosProxyElement = document.createElement('div');
           this.dropPosProxyElement.className = 'vuc-structure-pos-proxy';
           document.body.appendChild(this.dropPosProxyElement);
         }
-        const rect = e.target.getBoundingClientRect();
-        let style  = {
+
+        let rect = e.target.getBoundingClientRect();
+        let style = {
           display: 'block',
           top: rect.top + 'px',
           left: rect.left + 'px',
           width: rect.width - 7 + 'px',
           height: '0px',
         };
+
+        let addProxyClass = false;
         if (pos === 'before') {
-          this.dropPosProxyElement.classList.remove('vuc-structure-pos-proxy-inner');
+
         } else if (pos === 'after') {
-          this.dropPosProxyElement.classList.remove('vuc-structure-pos-proxy-inner');
           style.top = rect.top + rect.height + 'px';
         } else {
-          this.dropPosProxyElement.classList.add('vuc-structure-pos-proxy-inner');
+          addProxyClass = true;
           style.height = rect.height + 'px';
         }
+
+        this.setProxyClass(addProxyClass);
         Object.assign(this.dropPosProxyElement.style, style);
       });
     },
 
-    dropUp(e, node){
+    setProxyClass(add) {
+      if (add) {
+        this.dropPosProxyElement.classList.add('vuc-structure-pos-proxy-inner');
+      } else {
+        this.dropPosProxyElement.classList.remove('vuc-structure-pos-proxy-inner');
+      }
+    },
+
+    dropUp(e, node) {
 
       this.event(e, node, pos => {
-        const dropNode = this.activeEditor.dropManager.dropVucNode;
-        if (pos === 'inner') {
-          this.activeEditor.applyApi('appendNode', node, dropNode);
-        } else {
-          this.activeEditor.applyApi('parseNode', node, pos, dropNode, true);
-        }
+
+        this.activeEditor.dropManager.getDropVucNode().then(dropNode => {
+          if (pos === 'inner') {
+            this.activeEditor.applyApi('appendNode', node, dropNode);
+          } else {
+            this.activeEditor.applyApi('parseNode', node, pos, dropNode, true);
+          }
+        });
+
       });
 
     },

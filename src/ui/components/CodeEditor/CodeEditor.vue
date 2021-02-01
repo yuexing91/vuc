@@ -1,65 +1,6 @@
 <template>
-  <div class="vuc-codeeditor" :class="{'vuc-codeeditor-inline':inline,'vuc-codeeditor-small':sm}">
-  </div>
+  <div class="vuc-codeeditor" :class="{'vuc-codeeditor-inline':inline,'vuc-codeeditor-small':sm}"/>
 </template>
-<style lang="less">
-  .vuc-codeeditor {
-    border: 1px solid #dcdee2;
-  }
-
-  .vuc-codeeditor-inline {
-    border-radius: 3px;
-    line-height: 1.5;
-    padding: 2px 3px;
-    height: 32px;
-    max-height: 32px;
-  }
-
-  .vuc-codeeditor-small {
-    font-size: 12px;
-    padding: 1px 3px;
-    .CodeMirror-sizer {
-      min-height: 20px;
-    }
-    .CodeMirror-lines {
-      padding: 2px 0 !important;
-    }
-  }
-
-  .vuc-codeeditor .CodeMirror {
-    height: auto;
-    font: 14px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
-  }
-
-  .vuc-codeeditor, .CodeMirror-hints {
-    font-size: 14px;
-    .cm-variable {
-      /*color: #05a;*/
-    }
-  }
-
-  .CodeMirror-hints {
-    font-family: inherit;
-    min-width: 200px;
-  }
-
-  .CodeMirror-hints .vuc-code-hintcode {
-    line-height: 20px;
-  }
-
-  .vuc-code-hintdesc {
-    color: #9ea7b4;
-    font-size: 12px;
-    float: right;
-    display: inline-block;
-    height: 20px;
-    line-height: 20px;
-  }
-
-  .CodeMirror-hint-active .vuc-code-hintdesc {
-    color: #ccc;
-  }
-</style>
 <script>
 
   import _ from 'lodash'
@@ -258,3 +199,64 @@
 
   }
 </script>
+<style lang="less">
+  .vuc-codeeditor {
+    border: 1px solid #dcdee2;
+  }
+
+  .vuc-codeeditor-inline {
+    border-radius: 3px;
+    line-height: 1.4;
+    padding: 2px 3px;
+    height: 32px;
+    max-height: 32px;
+  }
+
+  .vuc-codeeditor-small {
+    font-size: 12px;
+    padding: 1px 3px;
+    .CodeMirror-sizer {
+      min-height: 20px;
+    }
+    .CodeMirror-lines {
+      padding: 1px 0 !important;
+    }
+    &.vuc-codeeditor-inline{
+      height: 24px;
+    }
+  }
+
+  .vuc-codeeditor .CodeMirror {
+    height: auto;
+    font: 14px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
+  }
+
+  .vuc-codeeditor, .CodeMirror-hints {
+    font-size: 14px;
+    .cm-variable {
+      /*color: #05a;*/
+    }
+  }
+
+  .CodeMirror-hints {
+    font-family: inherit;
+    min-width: 200px;
+  }
+
+  .CodeMirror-hints .vuc-code-hintcode {
+    line-height: 20px;
+  }
+
+  .vuc-code-hintdesc {
+    color: #9ea7b4;
+    font-size: 12px;
+    float: right;
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+  }
+
+  .CodeMirror-hint-active .vuc-code-hintdesc {
+    color: #ccc;
+  }
+</style>

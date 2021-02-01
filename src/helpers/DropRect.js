@@ -1,8 +1,23 @@
 import _ from 'lodash';
 
+
+function isBlock($el) {
+  let computedStyle = window.getComputedStyle($el);
+
+  if (['left', 'right'].includes(computedStyle.float)) {
+    return false;
+  }
+
+  if (['table', 'block'].includes(computedStyle.display)) {
+    return true;
+  }
+  return false;
+}
+
 class DropRect {
-  constructor (rect, data, isBlock) {
+  constructor(rect, data, el) {
     this.rect = rect;
+    this.el = el;
     this.data = data;
     this.x = rect.x;
     this.y = rect.y;
@@ -12,17 +27,17 @@ class DropRect {
     this.y2 = rect.y + rect.height;
     this.width = rect.width;
     this.height = rect.height;
-    this.isBlock = isBlock;
+    this.isBlock = isBlock(el);
   }
 
-  isInside (x, y) {
+  isInside(x, y) {
     if (x < this.x1 || x > this.x2 || y < this.y1 || y > this.y2) {
       return false;
     }
     return true;
   }
 
-  getInsidePos (x, y) {
+  getInsidePos(x, y) {
     const dis = [];
 
     if (this.isBlock) {
@@ -45,10 +60,10 @@ class DropRect {
       });
     }
 
-    return _.minBy(dis, 'value');
+    return Object.assign({ rect: this }, _.minBy(dis, 'value'));
   }
 
-  getPos (x, y) {
+  getPos(x, y) {
     if (this.isBlock) {
       if (y < this.y1 && x >= this.x1 && x <= this.x2) {
         return 't';
@@ -66,7 +81,7 @@ class DropRect {
     }
   }
 
-  getPosDis (x, y) {
+  getPosDis(x, y) {
     const pos = this.getPos(x, y);
 
     let value = -1;
@@ -87,10 +102,11 @@ class DropRect {
     return {
       pos,
       value,
+      rect: this,
     };
   }
 
-  getStyle (pos) {
+  getStyle(pos) {
     const r = this;
 
     switch (pos) {
@@ -155,30 +171,6 @@ class DropRect {
     // }
   }
 
-}
-
-export function getPos (point, rects, distance = 20) {
-  let rect = _.find(rects, rect => {
-    return rect.isInside(point.x, point.y);
-  });
-
-  if (rect) {
-    const pos = rect.getInsidePos(point.x, point.y);
-    pos.rect = rect;
-    if (pos.value < distance) {
-      return pos;
-    }
-  }
-
-  const temps = rects.map(rect => {
-    const pos = rect.getPosDis(point.x, point.y);
-    pos.rect = rect;
-    return pos;
-  }).filter(o => o.value >= 0);
-  const pos = _.minBy(temps, 'value');
-  if (pos && pos.value < distance) {
-    return pos;
-  }
 }
 
 export default DropRect;

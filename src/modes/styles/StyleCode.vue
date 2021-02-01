@@ -2,6 +2,7 @@
   <span class="vuc-style-code"
         v-html="innerText"
         :contenteditable="editable"
+        spellcheck="false"
         @keydown.enter.prevent="onEnter"
         @focus="isLocked = true"
         @blur="editover"
@@ -89,7 +90,7 @@
     font-size: 16px;
     display: inline-block;
     min-width: 6px;
-    height: 23px;
+    height: 24px;
 
     &[contenteditable=true] {
       user-modify: read-write-plaintext-only;

@@ -12,7 +12,7 @@
 <script>
 
   export default {
-    data () {
+    data() {
       return {
         navPos: {
           top: 0,
@@ -21,33 +21,33 @@
       };
     },
     computed: {
-      isShow () {
+      isShow() {
         return this.currentNode && this.currentNode.parent;
       },
-      currentNode () {
+      currentNode() {
         return this.$parent.currentNode;
       },
-      navPosStyle () {
+      navPosStyle() {
         return {
           top: this.navPos.top - this.$parent.scrollTop + 'px',
           left: this.navPos.left - this.$parent.scrollLeft + 'px',
         };
       },
     },
-    created () {
+    created() {
       setInterval(() => {
         this.updatePos();
       }, 1000 / 60);
     },
     watch: {
-      currentNode () {
+      currentNode() {
         this.$nextTick(() => {
           this.updatePos();
         });
       },
     },
     methods: {
-      updatePos () {
+      updatePos() {
         let vuc = this.currentNode;
         if (vuc) {
           let rootRect = this.$parent.$el.querySelector('.vuc-ceditor').getBoundingClientRect();
@@ -70,12 +70,15 @@
 
       },
 
-      dropStart (e) {
+      dropStart(e) {
         let vucNode = this.currentNode;
         let el = this.$parent.getVucNodeElement(vucNode);
         let rect = el.getBoundingClientRect();
 
-        this.$parent.dropStart(e, vucNode, {
+        this.$parent.dropStart(e, {
+          node: vucNode,
+          tag: vucNode.tag,
+        }, {
           x: 0,
           y: 0,
           width: rect.width + 'px',
@@ -83,19 +86,19 @@
         });
       },
 
-      moveToBefore () {
+      moveToBefore() {
         this.$parent.applyApi('moveToBefore', this.currentNode);
       },
 
-      moveToAfter () {
+      moveToAfter() {
         this.$parent.applyApi('moveToAfter', this.currentNode);
       },
 
-      remove () {
+      remove() {
         this.$parent.applyApi('removeNode', this.currentNode);
       },
 
-      selectParent () {
+      selectParent() {
         let vucNode = this.currentNode;
         if (vucNode.parent) {
           this.$parent.selectVucNode(vucNode.parent);

@@ -19,72 +19,78 @@
         </span>
     </template>
     <template v-else>
-      <span class="cm-str"  @mousemove="dropMove"
+      <span class="cm-str" @mousemove="dropMove"
             @mouseup="dropUp">{{node.text}}</span>
     </template>
   </span>
 </template>
 <script>
   import _ from 'lodash';
-  export default{
+
+  export default {
     props: {
-      node: Object
+      node: Object,
     },
     inject: ['$Structure'],
     computed: {
-      isTag(){
+      isTag() {
         return this.node.tag;
       },
-      attrs(){
+      attrs() {
         let attrs = _.map(this.node.attrsMap, (value, key) => {
           return {
             value,
             key,
-          }
+          };
         }).filter(attr => {
           const first = attr.key[0] === ':' ? attr.key[1] : attr.key[0];
           return first !== '_' && attr.value !== undefined;
         });
 
         if (attrs.length > 2) {
-          const style = `margin-left:${((this.node.tag.length) * 7.7 + 23)}px`;
+          const style = `margin-left:${ ( ( this.node.tag.length ) * 7.7 + 23 ) }px`;
           attrs.forEach((attr, index) => {
             if (index) {
               attr.style = style;
             }
-          })
+          });
         }
 
-        return attrs
-      }
+        return attrs;
+      },
     },
-    data(){
-      return {}
+    data() {
+      return {};
     },
     methods: {
-      selectNode(){
+      selectNode() {
         this.$Structure.selectNode(this.node);
       },
-      dropStart(e){
-        this.$Structure.dropStart(e, this.node);
+      dropStart(e) {
+        this.$Structure.dropStart(e, {
+          node: this.node,
+          tag: this.node.tag,
+        });
       },
-      dropMove(e){
+      dropMove(e) {
         this.$Structure.dropMove(e, this.node);
       },
-      dropUp(e){
+      dropUp(e) {
         this.$Structure.dropUp(e, this.node);
       },
-      showMenu(e){
+      showMenu(e) {
         this.$Structure.showContextMenu(e, this.node);
-      }
-    }
-  }
+      },
+    },
+  };
 </script>
+
 <style lang="less">
   .vue-node {
     font: 14px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
     cursor: pointer;
     user-select: none;
+
     &.vue-node-selected {
       .cm-tag, .vue-node-attr, .cm-str {
         background: #FFFAE3;

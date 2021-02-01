@@ -1,13 +1,15 @@
+import { camelize } from '@/helpers/lang';
+
 const vucConfigs = {};
 
 export function getVucConfig(id) {
-  id = _.kebabCase(id);
-  return vucConfigs[id];
+  if (!id) return;
+  return vucConfigs[id] || vucConfigs[camelize(id)];
 };
 
 export function setVucConfig(config) {
   _.castArray(config.id).forEach(id => {
-    id          = id.indexOf('-') ? _.kebabCase(id) : id;
+    id = camelize(id);
     vucConfigs[id] = config;
   });
 };

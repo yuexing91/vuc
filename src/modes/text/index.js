@@ -1,7 +1,7 @@
-import TextView from './TextView.vue';
+import TextPanel from './TextPanel.vue';
 
 export default {
   install(Designer){
-    Designer.registerConfigurator('TextView', TextView);
+    Designer.registerPanel('TextPanel', TextPanel);
   },
 };

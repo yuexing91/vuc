@@ -1,7 +1,7 @@
-import EventView from './EventView.vue';
+import EventPanel from './EventPanel.vue';
 
 export default {
   install(Designer){
-    Designer.registerConfigurator('EventView', EventView);
+    Designer.registerPanel('EventPanel', EventPanel);
   },
 };

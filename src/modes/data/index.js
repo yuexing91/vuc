@@ -1,9 +1,9 @@
-import DataView from './DataView';
+import DataPanel from './DataPanel';
 import { processDataAst} from './ast.js';
 
 export default {
   install(Designer){
     processDataAst(Designer);
-    Designer.registerConfigurator('DataView', DataView);
+    Designer.registerPanel('DataPanel', DataPanel);
   },
 };

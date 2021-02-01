@@ -5,12 +5,12 @@ import esprimaHelper from '@/helpers/esprimaHelper.js';
 const exprPath = 'exportdefault.object.property[name=data]'.split('.');
 
 class DataProcessor {
-  constructor (vucAst) {
+  constructor(vucAst) {
     this.vucAst = vucAst;
     this.process();
   }
 
-  process (dataProperty, code) {
+  process(dataProperty, code) {
     let vucAst = this.vucAst;
     vucAst.VucDatas = [];
 
@@ -27,30 +27,35 @@ class DataProcessor {
     vucAst.VucDatas = esprimaHelper.parseObjectExpression(returnExpression, code);
   }
 
-  toCode () {
+  toCode() {
     let attachCode = this.vucAst.VucDatasAttachCode || '';
     let code = this.vucAst.VucDatas.map(data => {
       let comments = '';
       if (data.name) {
-        comments = `\n  //${data.name}\n`;
+        comments = `\n  //${ data.name }\n`;
       }
-      return `${comments}${data.id}:${data.code}`;
+      return `${ comments }${ data.id }:${ data.code }`;
     }).join(',');
 
-    return `data(){ ${attachCode || ''}
-      return {${code}}
+    return `data(){ ${ attachCode || '' }
+      return {${ code }}
     }`;
   }
 
 }
 
-function $setRootData (vm, key, value) {
+function codeToData(code) {
+  return esprimaHelper.parseExpression(code);
+}
+
+
+function $setRootData(vm, key, value) {
   vm.$set(vm.ROOT_PROXY_DATA, key, value);
   proxy(vm, 'ROOT_PROXY_DATA', key);
 }
 
 const vucAstMethods = {
-  saveData (data) {
+  saveData(data) {
     let vucData = this.VucDatas.find(d => data.id == d.id);
     if (vucData) {
       this.updateData(vucData, data);
@@ -59,19 +64,66 @@ const vucAstMethods = {
     }
   },
 
-  addData (data) {
+  addData(data) {
     this.VucDatas.push(data);
+    let t = codeToData(data.code);
+    if (t.type === 'ObjectExpression') {
+      data.children = esprimaHelper.parseObjectExpression(t, `(${ data.code })`);
+    }
     $setRootData(this.vucInstance, data.id, new Function('return ' + data.code).call(this.vucInstance));
   },
 
-  updateData (oldData, newData) {
+  findChildData(path) {
+    let t = {
+      children: this.VucDatas,
+    };
+    path.split('.').forEach(id => {
+      if (t != null) {
+        t = _.find(t.children, { id });
+      }
+    });
+    return t;
+  },
+
+  addChildData(path, data) {
+    let datas = this.VucDatas;
+    let paths = path.split('.');
+    paths.forEach(p => {
+      datas = _.find(datas, { id: p }).children;
+    });
+
+    let oldData = _.find(datas, { id: data.id });
+    if (oldData) {
+      return;
+    }
+
+    datas.push(data);
+
+    let root = _.find(this.VucDatas, { id: paths[0] });
+
+    function getCode(data) {
+      return '{' + data.children.map(child => {
+        return child.id + ':' + ( child.children ? getCode(child) : child.code );
+      }).join(',') + '}';
+    }
+
+    root.code = getCode(root);
+  },
+
+  updateData(oldData, newData) {
+    let children;
     if (oldData.code !== newData.code) {
       this.vucInstance[newData.id] = new Function('return ' + newData.code).call(this.vucInstance);
     }
-    Object.assign(oldData, newData);
+    let t = codeToData(newData.code);
+    if (t.type === 'ObjectExpression') {
+      children = esprimaHelper.parseObjectExpression(t, `(${ newData.code })`);
+    }
+
+    Object.assign(oldData, newData, { children });
   },
 
-  delData (data) {
+  delData(data) {
     let index = this.VucDatas.indexOf(data);
     let vm = this.vucInstance;
     this.VucDatas.splice(index, 1);
@@ -82,7 +134,7 @@ const vucAstMethods = {
   },
 };
 
-export function processDataAst (Designer) {
+export function processDataAst(Designer) {
   Designer.registerVucAstProcess(function (VucAst) {
     Object.assign(VucAst.prototype, vucAstMethods);
     return {

@@ -1,7 +1,7 @@
-import DirectiveView from './DirectiveView';
+import DirectivePanel from './DirectivePanel';
 
 export default {
   install(Designer){
-    Designer.registerConfigurator('DirectiveView', DirectiveView);
+    Designer.registerPanel('DirectivePanel', DirectivePanel);
   },
 };

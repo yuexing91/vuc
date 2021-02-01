@@ -99,13 +99,13 @@ html, body {
 code {
   display: inline-block;
   background: #f7f7f7;
-  margin: 0 3px;
+  margin-right: 3px;
   padding: 1px 5px;
   border-radius: 3px;
   color: #881391;
   border: 1px solid #eee;
-  min-height: 19px;
-  line-height: 19px;
+  min-height: 20px;
+  line-height: 20px;
 
   &:empty {
     visibility: hidden;
@@ -145,17 +145,23 @@ code {
   }
 }
 
-.vuc-ceditor-panle-top {
-  height: 20px;
-  flex-shrink: 0;
-
-  .p {
-    width: 20px;
-    background: #fff;
+.vuc-ceditor-panle{
+  &-top {
     flex-shrink: 0;
-    z-index: 1;
+    .vuc-ceditor-empty {
+      width: 20px;
+      background: #fff;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+  }
+
+  &-bottom {
+    flex-grow: 1;
   }
 }
+
+
 
 .vuc-ceditor-guidelinev {
   width: 1px;
@@ -178,6 +184,7 @@ code {
   height: 100%;
   overflow: hidden;
   position: relative;
+  outline: none
 }
 
 .vuc-editor-content {
@@ -333,4 +340,16 @@ body.vuc-draging {
 
 .vuc-editor-menu, .vuc-hover-layer, .vuc-selected-layer, .vuc-tag-tools {
   z-index: 999 !important;
+}
+
+.vuc-mode-view{
+  position: relative;
+}
+
+*[vucnode]{
+  outline: 1px dashed #ddd;
+}
+
+*[no-outline]{
+  outline: none;
 }
