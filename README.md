@@ -3,13 +3,14 @@
 > vue文件的可视化设计器；支持组件拖拽、导出为vue文件。
 > [在线预览](https://yuexing91.github.io/vuc-demo/)
 > [demo](https://github.com/yuexing91/vuc-demo)
+> [文档](https://github.com/yuexing91/vuc/blob/0.2.0/docs/index.md)
 
 ![演示图片](https://github.com/yuexing91/yuexing91.github.io/blob/master/vuc-demo/img/preview.gif "演示图片")
 
 * 所见即所得
 * 支持自定义扩展
 * 支持任意模板片段
-* 支持扩展模块（后续文档再定）
+* 支持扩展模块
 * 支持vue文件中的data、computed、watch、methods可视化维护
 * 支持template节点中的props、style（暂时只支持静态样式）、directive、event
 
