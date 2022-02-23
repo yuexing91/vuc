@@ -5,7 +5,7 @@
 - [demo](https://github.com/yuexing91/vuc-demo)
 - [文档](./docs/index.md)
 
-![演示图片](https://github.com/yuexing91/yuexing91.github.io/blob/master/vuc-demo/img/preview.gif "演示图片")
+![演示图片](https://img.wenhairu.com/images/2022/02/23/RRUB3.gif "演示图片")
 
 * 所见即所得
 * 支持自定义扩展
