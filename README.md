@@ -1,6 +1,6 @@
 # vuc
 
-`vue3.0`版本[看这](./vuc3)
+`vue3.0`版本[看这](/yuexing91/vuc3)
 
 > vue文件的可视化设计器；支持组件拖拽、导出为vue文件。
 - [在线预览](https://yuexing91.github.io/vuc-demo/)
